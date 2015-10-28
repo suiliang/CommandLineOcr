@@ -44,7 +44,7 @@ namespace CommandLineOcr
             {
                 try
                 {
-                    await WriteToFile(folder, "arg.txt", e.Arguments);
+                    Debug.WriteLine("args: " + e.Arguments);
                     var ocrEngine = new OcrEngine(OcrLanguage.English);
                     var file = await folder.GetFileAsync(e.Arguments);
                     ImageProperties imgProp = await file.Properties.GetImagePropertiesAsync();
