@@ -72,8 +72,10 @@ namespace CommandLineOcr
                     // OCR result does not contain any lines, no text was recognized. 
                     if (ocrResult.Lines != null)
                     {
+                        bool hasVerticalLines = false;
                         JsonObject jsonOjbect = new JsonObject();
                         jsonOjbect.Add("text_angle", JsonValue.CreateNumberValue(ocrResult.TextAngle.HasValue ? ocrResult.TextAngle.Value : 0d));
+                        string extractedText = "";
 
                         JsonArray wordsArray = new JsonArray();
                         jsonOjbect.Add("words", wordsArray);
@@ -81,6 +83,8 @@ namespace CommandLineOcr
                         // Iterate over recognized lines of text.
                         foreach (var line in ocrResult.Lines)
                         {
+                            hasVerticalLines |= line.IsVertical;
+                            JsonArray lineArray = new JsonArray();
                             foreach (var word in line.Words)
                             {
                                 JsonObject wordJson = new JsonObject();
@@ -90,8 +94,14 @@ namespace CommandLineOcr
                                 wordJson.Add("width", JsonValue.CreateNumberValue(word.Width));
                                 wordJson.Add("height", JsonValue.CreateNumberValue(word.Height));
                                 wordJson.Add("text", JsonValue.CreateStringValue(word.Text));
+
+                                extractedText += word.Text + " ";
                             }
+                            extractedText += line.Words.Select(w => w.Text).Aggregate((w1,w2) => w1 + " " + w2);
+                            extractedText += '\n';
                         }
+                        jsonOjbect.Add("text", JsonValue.CreateStringValue(extractedText));
+                        jsonOjbect.Add("has_vertical_line", JsonValue.CreateBooleanValue(hasVerticalLines));
                         await WriteToFile(folder, file.Name + ".txt", jsonOjbect.Stringify());
                     }
                     else
